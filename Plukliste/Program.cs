@@ -116,7 +116,7 @@ class PluklisteProgram {
                     if (index == files.Count) index--;
                     break;
             }
-            Console.ForegroundColor = standardColor; //reset color
+            Console.ForegroundColor = standardColor; 
 
         }
     }
