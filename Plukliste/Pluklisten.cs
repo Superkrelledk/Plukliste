@@ -1,8 +1,7 @@
-
 //Eksempel på funktionel kodning hvor der kun bliver brugt et model lag
 namespace Plukliste;
 
-class PluklisteProgram
+class Pluklisten
 {
 
     static void Main()
@@ -60,12 +59,11 @@ class PluklisteProgram
                 }
 
                 //Print options
-                string[] keys = ['Q', 'A', 'F', 'N', 'G']
-                for (i = 0; i < 5; i++) 
-                {
-                    string[] options = {"Quit", "Afslut plukseddel", "Forrige plukseddel", "Næste plukseddel", "Genindlæs pluksedler"}
+                char[] keys = new char[] { 'Q', 'A', 'F', 'N', 'G' };
+                string[] options = { "Quit", "Afslut plukseddel", "Forrige plukseddel", "Næste plukseddel", "Genindlæs pluksedler" };
                 Console.WriteLine("\n\nOptions:");
-
+                for (int i = 0; i < 5; i++) 
+                {
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.Write(keys[i]);
                     Console.ForegroundColor = standardColor;
@@ -80,7 +78,7 @@ class PluklisteProgram
                 Console.ForegroundColor = ConsoleColor.Red; //status in red
                 
 
-                if (readKey == Q) { break; }
+                if (readKey == 'Q') { break; }
 
                 switch (readKey)
                 {
@@ -120,7 +118,7 @@ class PluklisteProgram
 
 
                         Console.ForegroundColor = standardColor;
-
+                        break; // <-- Added break to prevent control from falling out of the switch
                 }
                 index = index + 1;
             }

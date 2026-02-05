@@ -10,10 +10,10 @@ public class Pluklist
 
 public class Item
 {
-    public string ProductID;
-    public string Title;
-    public ItemType Type;
-    public int Amount;
+    public string ProductID { get; set; } = string.Empty;
+    public string Title { get; set; } = string.Empty;
+    public ItemType Type { get; set; }
+    public int Amount { get; set; }
 }
 
 public enum ItemType
