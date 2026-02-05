@@ -11,6 +11,7 @@ class PluklisteProgram {
         var index = -1;
         var standardColor = Console.ForegroundColor;
         Directory.CreateDirectory("import");
+        Directory.CreateDirectory("print");
 
         if (!Directory.Exists("export"))
         {
@@ -46,7 +47,7 @@ class PluklisteProgram {
                 {
                     Console.WriteLine("\n{0, -13}{1}", "Name:", plukliste.Name);
                     Console.WriteLine("{0, -13}{1}", "Forsendelse:", plukliste.Forsendelse);
-                    //TODO: Add adresse to screen print
+                    Console.WriteLine("{0, -13}{1}", "Adresse:", plukliste.Adresse);
 
                     Console.WriteLine("\n{0,-7}{1,-9}{2,-20}{3}", "Antal", "Type", "Produktnr.", "Navn");
                     foreach (var item in plukliste.Lines)
@@ -108,6 +109,18 @@ class PluklisteProgram {
                     if (index < files.Count - 1) index++;
                     break;
                 case 'A':
+                    //Process print items
+                    FileStream fileForProcessing = File.OpenRead(files[index]);
+                    System.Xml.Serialization.XmlSerializer serializer =
+                        new System.Xml.Serialization.XmlSerializer(typeof(Pluklist));
+                    var pluklisteToProcess = (Pluklist?)serializer.Deserialize(fileForProcessing);
+                    fileForProcessing.Close();
+
+                    if (pluklisteToProcess != null && pluklisteToProcess.Lines != null)
+                    {
+                        ProcessPrintItems(pluklisteToProcess);
+                    }
+
                     //Move files to import directory
                     var filewithoutPath = files[index].Substring(files[index].LastIndexOf('\\'));
                     File.Move(files[index], string.Format(@"import\\{0}", filewithoutPath));
@@ -118,6 +131,38 @@ class PluklisteProgram {
             }
             Console.ForegroundColor = standardColor; 
 
+        }
+    }
+
+    static void ProcessPrintItems(Pluklist plukliste)
+    {
+        foreach (var item in plukliste.Lines.Where(i => i.Type == ItemType.Print))
+        {
+            for (int i = 0; i < item.Amount; i++)
+            {
+                string templatePath = $"templates\\{item.ProductID}.html";
+                
+                if (!File.Exists(templatePath))
+                {
+                    Console.WriteLine($"Advarsel: Template ikke fundet for {item.ProductID}");
+                    continue;
+                }
+
+                string htmlContent = File.ReadAllText(templatePath);
+                
+                //Replace tags with actual data
+                htmlContent = htmlContent.Replace("[Name]", plukliste.Name ?? "");
+                htmlContent = htmlContent.Replace("[Adresse]", plukliste.Adresse ?? "");
+                htmlContent = htmlContent.Replace("[Forsendelse]", plukliste.Forsendelse ?? "");
+                htmlContent = htmlContent.Replace("[ProductID]", item.ProductID ?? "");
+                htmlContent = htmlContent.Replace("[Title]", item.Title ?? "");
+                htmlContent = htmlContent.Replace("[Dato]", DateTime.Now.ToString("dd-MM-yyyy"));
+
+                //Save to print folder
+                string outputFileName = $"print\\{plukliste.Name}_{item.ProductID}_{DateTime.Now:yyyyMMddHHmmss}_{i + 1}.html";
+                File.WriteAllText(outputFileName, htmlContent);
+                Console.WriteLine($"Vejledning genereret: {outputFileName}");
+            }
         }
     }
 }
