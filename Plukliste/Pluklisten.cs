@@ -61,7 +61,7 @@ class PluklisteProgram
 
                 //Print options
                 string[] keys = ['Q', 'A', 'F', 'N', 'G']
-                for (i = 0; i < 6; i++) 
+                for (i = 0; i < 5; i++) 
                 {
                     string[] options = {"Quit", "Afslut plukseddel", "Forrige plukseddel", "Næste plukseddel", "Genindlæs pluksedler"}
                 Console.WriteLine("\n\nOptions:");
