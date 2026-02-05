@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Pluklist xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Name>Hans Jensen</Name>
+  <Forsendelse>Express levering</Forsendelse>
+  <Adresse>Hovedgaden 42, 2100 København Ø</Adresse>
+  <Lines>
+    <Item>
+      <ProductID>PROD123</ProductID>
+      <Title>Trådløs Mus</Title>
+      <Type>Fysisk</Type>
+      <Amount>2</Amount>
+    </Item>
+    <Item>
+      <ProductID>VEJ001</ProductID>
+      <Title>Installationsvejledning til Trådløs Mus</Title>
+      <Type>Print</Type>
+      <Amount>1</Amount>
+    </Item>
+    <Item>
+      <ProductID>PROD456</ProductID>
+      <Title>USB Tastatur</Title>
+      <Type>Fysisk</Type>
+      <Amount>1</Amount>
+    </Item>
+  </Lines>
+</Pluklist>

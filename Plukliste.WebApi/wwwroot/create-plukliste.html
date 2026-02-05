@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="da">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Opret Plukliste</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: Arial, sans-serif;
+        background: #f5f5f5;
+        padding: 20px;
+      }
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #007bff;
+      }
+      h1 {
+        color: #333;
+      }
+      h2 {
+        color: #333;
+        margin-top: 20px;
+        margin-bottom: 15px;
+      }
+      .nav-links {
+        display: flex;
+        gap: 10px;
+      }
+      .nav-links a {
+        text-decoration: none;
+        color: #007bff;
+        padding: 8px 16px;
+        border: 1px solid #007bff;
+        border-radius: 4px;
+      }
+      .nav-links a:hover {
+        background: #007bff;
+        color: white;
+      }
+      .form-group {
+        margin-bottom: 15px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #333;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+      }
+      .section {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+      }
+      .search-box {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 15px;
+      }
+      .search-box input {
+        flex: 1;
+      }
+      button {
+        padding: 10px 20px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+      }
+      button:hover {
+        background: #0056b3;
+      }
+      button.danger {
+        background: #dc3545;
+      }
+      button.danger:hover {
+        background: #c82333;
+      }
+      button.success {
+        background: #28a745;
+        width: 100%;
+        padding: 15px;
+        font-size: 16px;
+        margin-top: 20px;
+      }
+      button.success:hover {
+        background: #218838;
+      }
+      button:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+      }
+      th,
+      td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+      th {
+        background: #007bff;
+        color: white;
+      }
+      tr:hover {
+        background: #f8f9fa;
+      }
+      .status-ok {
+        color: #28a745;
+        font-weight: bold;
+      }
+      .status-warning {
+        color: #ffc107;
+        font-weight: bold;
+      }
+      .status-error {
+        color: #dc3545;
+        font-weight: bold;
+      }
+      .product-info {
+        background: #e7f3ff;
+        padding: 15px;
+        border-radius: 4px;
+        margin-bottom: 10px;
+      }
+      .product-info strong {
+        color: #007bff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Opret Plukliste</h1>
+        <nav class="nav-links">
+          <a href="index.html">Lagerstyring</a>
+          <a href="create-plukliste.html">Opret Plukliste</a>
+          <a href="plukliste-viewer.html">Se Pluklister</a>
+        </nav>
+      </header>
+
+      <div class="section">
+        <h2>Kunde Information</h2>
+        <div class="form-group">
+          <label for="customerName">Navn:</label>
+          <input
+            type="text"
+            id="customerName"
+            placeholder="f.eks. Hans Jensen"
+          />
+        </div>
+        <div class="form-group">
+          <label for="address">Adresse:</label>
+          <input
+            type="text"
+            id="address"
+            placeholder="f.eks. Hovedgaden 42, 2100 København"
+          />
+        </div>
+        <div class="form-group">
+          <label for="delivery">Forsendelse:</label>
+          <select id="delivery">
+            <option>Express levering</option>
+            <option>Standard levering</option>
+            <option>Pickup</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Søg efter Produkt</h2>
+        <div class="search-box">
+          <input
+            type="text"
+            id="productSearch"
+            placeholder="Skriv produkt ID (f.eks. PROD123)"
+          />
+          <button onclick="searchProduct()">Søg</button>
+        </div>
+        <div id="productResult"></div>
+      </div>
+
+      <h2>Varer på Pluklisten</h2>
+      <div id="itemsDisplay">
+        <p style="color: #999">Ingen varer tilføjet endnu</p>
+      </div>
+
+      <button
+        class="success"
+        id="createBtn"
+        onclick="createPlukliste()"
+        disabled
+      >
+        Opret Plukliste
+      </button>
+    </div>
+
+    <script>
+      // Hardkodet produktliste
+      const PRODUCTS = [
+        {
+          productID: "PROD123",
+          title: "Trådløs Mus",
+          type: 0,
+          quantityAvailable: 50,
+        },
+        {
+          productID: "PROD456",
+          title: "USB Tastatur",
+          type: 0,
+          quantityAvailable: 30,
+        },
+        {
+          productID: "PROD789",
+          title: 'Monitor 27"',
+          type: 0,
+          quantityAvailable: 15,
+        },
+        {
+          productID: "PROD890",
+          title: "HDMI Kabel",
+          type: 0,
+          quantityAvailable: 100,
+        },
+        {
+          productID: "RES001",
+          title: "Reservedel A",
+          type: 0,
+          quantityAvailable: 200,
+        },
+        {
+          productID: "RES002",
+          title: "Reservedel B",
+          type: 0,
+          quantityAvailable: 150,
+        },
+        {
+          productID: "RES003",
+          title: "Reservedel C",
+          type: 0,
+          quantityAvailable: 80,
+        },
+        {
+          productID: "TOOL001",
+          title: "Værktøj Set A",
+          type: 0,
+          quantityAvailable: 25,
+        },
+        {
+          productID: "TOOL002",
+          title: "Værktøj Set B",
+          type: 0,
+          quantityAvailable: 18,
+        },
+        {
+          productID: "VEJ001",
+          title: "Installationsvejledning Mus",
+          type: 1,
+          quantityAvailable: 999999,
+        },
+        {
+          productID: "VEJ002",
+          title: "Opsætningsvejledning Monitor",
+          type: 1,
+          quantityAvailable: 999999,
+        },
+      ];
+
+      let pluklisteItems = [];
+
+      function searchProduct() {
+        const searchTerm = document
+          .getElementById("productSearch")
+          .value.trim()
+          .toUpperCase();
+        if (!searchTerm) {
+          alert("Skriv et produkt ID");
+          return;
+        }
+
+        const product = PRODUCTS.find((p) => p.productID === searchTerm);
+        if (!product) {
+          document.getElementById("productResult").innerHTML =
+            '<div style="color: red; padding: 10px;">Produkt ikke fundet. Prøv: PROD123, RES001, VEJ001</div>';
+          return;
+        }
+
+        const available = product.quantityAvailable;
+        let status =
+          available === 0 ? "Udsolgt" : available < 10 ? "Lav lager" : "OK";
+        let statusClass =
+          available === 0
+            ? "status-error"
+            : available < 10
+              ? "status-warning"
+              : "status-ok";
+
+        document.getElementById("productResult").innerHTML = `
+        <div class="product-info">
+          <strong>${product.productID}</strong> - ${product.title}<br>
+          <span class="${statusClass}">Status: ${status}</span><br>
+          Antal: <input type="number" id="amount" value="1" min="1" max="${product.type === 1 ? 999 : available}" style="width: 80px;">
+          <button onclick="addItem('${product.productID}', '${product.title}', ${product.type}, ${available})">Tilføj</button>
+        </div>
+      `;
+      }
+
+      function addItem(productID, title, type, available) {
+        const amount = parseInt(document.getElementById("amount").value) || 1;
+
+        if (type === 0 && amount > available) {
+          alert("Ikke nok på lager!");
+          return;
+        }
+
+        const existing = pluklisteItems.find((i) => i.productID === productID);
+        if (existing) {
+          existing.amount += amount;
+        } else {
+          pluklisteItems.push({ productID, title, type, amount, available });
+        }
+
+        updateDisplay();
+        document.getElementById("productSearch").value = "";
+        document.getElementById("productResult").innerHTML = "";
+      }
+
+      function removeItem(index) {
+        pluklisteItems.splice(index, 1);
+        updateDisplay();
+      }
+
+      function updateDisplay() {
+        if (pluklisteItems.length === 0) {
+          document.getElementById("itemsDisplay").innerHTML =
+            '<p style="color: #999;">Ingen varer tilføjet endnu</p>';
+          document.getElementById("createBtn").disabled = true;
+          return;
+        }
+
+        let html =
+          "<table><tr><th>Produkt</th><th>Antal</th><th>Lager</th><th>Status</th><th></th></tr>";
+
+        pluklisteItems.forEach((item, i) => {
+          const ok = item.type === 1 || item.amount <= item.available;
+          const status = ok
+            ? '<span class="status-ok">OK</span>'
+            : '<span class="status-error">For meget</span>';
+          html += `<tr><td>${item.productID}<br>${item.title}</td><td>${item.amount}</td><td>${item.type === 1 ? "∞" : item.available}</td><td>${status}</td><td><button class="danger" onclick="removeItem(${i})">Fjern</button></td></tr>`;
+        });
+
+        html += "</table>";
+        document.getElementById("itemsDisplay").innerHTML = html;
+        document.getElementById("createBtn").disabled = false;
+      }
+
+      function createPlukliste() {
+        const name = document.getElementById("customerName").value.trim();
+        const address = document.getElementById("address").value.trim();
+        const delivery = document.getElementById("delivery").value;
+
+        if (!name || !address) {
+          alert("Udfyld navn og adresse");
+          return;
+        }
+
+        if (pluklisteItems.length === 0) {
+          alert("Tilføj mindst én vare");
+          return;
+        }
+
+        const plukliste = {
+          id: Date.now(),
+          name,
+          address,
+          delivery,
+          items: pluklisteItems,
+          created: new Date().toLocaleString("da-DK"),
+        };
+
+        // Gem i localStorage
+        let allPlukklister = JSON.parse(
+          localStorage.getItem("pluklister") || "[]",
+        );
+        allPlukklister.push(plukliste);
+        localStorage.setItem("pluklister", JSON.stringify(allPlukklister));
+
+        alert("Plukliste gemt! ID: " + plukliste.id);
+
+        // Nulstil form
+        document.getElementById("customerName").value = "";
+        document.getElementById("address").value = "";
+        pluklisteItems = [];
+        updateDisplay();
+        document.getElementById("productSearch").value = "";
+        document.getElementById("productResult").innerHTML = "";
+      }
+    </script>
+  </body>
+</html>

@@ -1,4 +1,10 @@
-﻿//Eksempel på funktionel kodning hvor der kun bliver brugt et model lag
+﻿using Plukliste.Core.Models;
+using Plukliste.Core.Parsers;
+using Plukliste.Data;
+using Plukliste.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+
 namespace Plukliste;
 
 class PluklisteProgram
@@ -6,11 +12,40 @@ class PluklisteProgram
     private const string ExportDirectory = "export";
     private const string ImportDirectory = "import";
     private const string PrintDirectory = "print";
+    
+    private readonly PluklisteParserFactory _parserFactory;
+    private readonly IStockService _stockService;
+
+    public PluklisteProgram(IStockService stockService)
+    {
+        _parserFactory = new PluklisteParserFactory();
+        _stockService = stockService;
+    }
 
     static void Main()
     {
-        var app = new PluklisteProgram();
-        app.Run();
+        // Setup dependency injection
+        var services = new ServiceCollection();
+        services.AddDbContext<PluklisteDbContext>(options =>
+            options.UseSqlite("Data Source=../Plukliste.WebApi/plukliste.db"));
+        services.AddScoped<IStockService, StockService>();
+
+        var serviceProvider = services.BuildServiceProvider();
+
+        // Initialize database
+        using (var scope = serviceProvider.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<PluklisteDbContext>();
+            db.Database.EnsureCreated();
+        }
+
+        // Run app
+        using (var scope = serviceProvider.CreateScope())
+        {
+            var stockService = scope.ServiceProvider.GetRequiredService<IStockService>();
+            var app = new PluklisteProgram(stockService);
+            app.Run();
+        }
     }
 
     private void Run()
@@ -69,36 +104,68 @@ class PluklisteProgram
     {
         Console.WriteLine($"Plukliste {index + 1} af {totalCount}");
         Console.WriteLine($"\nfile: {filePath}");
+        Console.WriteLine($"Type: {Path.GetExtension(filePath).ToUpper()}");
 
-        var plukliste = DeserializePlukliste(filePath);
-
-        if (plukliste != null && plukliste.Lines != null)
+        try
         {
-            DisplayPluklisteHeader(plukliste);
-            DisplayPluklisteItems(plukliste.Lines);
+            var plukliste = _parserFactory.ParseFile(filePath);
+
+            if (plukliste != null && plukliste.Lines != null)
+            {
+                DisplayPluklisteHeader(plukliste);
+                DisplayPluklisteItemsAsync(plukliste.Lines).Wait();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Fejl ved læsning af fil: {ex.Message}");
         }
     }
 
-    private Pluklist? DeserializePlukliste(string filePath)
-    {
-        using FileStream file = File.OpenRead(filePath);
-        var xmlSerializer = new System.Xml.Serialization.XmlSerializer(typeof(Pluklist));
-        return (Pluklist?)xmlSerializer.Deserialize(file);
-    }
-
-    private void DisplayPluklisteHeader(Pluklist plukliste)
+    private void DisplayPluklisteHeader(IPlukliste plukliste)
     {
         Console.WriteLine("\n{0, -13}{1}", "Name:", plukliste.Name);
         Console.WriteLine("{0, -13}{1}", "Forsendelse:", plukliste.Forsendelse);
         Console.WriteLine("{0, -13}{1}", "Adresse:", plukliste.Adresse);
     }
 
-    private void DisplayPluklisteItems(List<Item> items)
+    private async Task DisplayPluklisteItemsAsync(List<IItem> items)
     {
-        Console.WriteLine("\n{0,-7}{1,-9}{2,-20}{3}", "Antal", "Type", "Produktnr.", "Navn");
+        Console.WriteLine("\n{0,-7}{1,-9}{2,-20}{3,-30}{4}", "Antal", "Type", "Produktnr.", "Navn", "Status");
+        
         foreach (var item in items)
         {
-            Console.WriteLine("{0,-7}{1,-9}{2,-20}{3}", item.Amount, item.Type, item.ProductID, item.Title);
+            var product = await _stockService.GetProductAsync(item.ProductID);
+            var status = "OK";
+            var statusColor = Console.ForegroundColor;
+
+            if (item.Type == ItemType.Fysisk && product != null)
+            {
+                var available = product.QuantityAvailable;
+                if (available < item.Amount)
+                {
+                    status = available > 0 ? $"REST (kun {available})" : "UDSOLGT";
+                    statusColor = ConsoleColor.Red;
+                }
+                else if (available < 10)
+                {
+                    statusColor = ConsoleColor.Yellow;
+                }
+                else
+                {
+                    statusColor = ConsoleColor.Green;
+                }
+            }
+            else if (product == null)
+            {
+                status = "Ukendt produkt";
+                statusColor = ConsoleColor.Red;
+            }
+
+            var originalColor = Console.ForegroundColor;
+            Console.ForegroundColor = statusColor;
+            Console.WriteLine("{0,-7}{1,-9}{2,-20}{3,-30}{4}", item.Amount, item.Type, item.ProductID, item.Title, status);
+            Console.ForegroundColor = originalColor;
         }
     }
 
@@ -150,24 +217,42 @@ class PluklisteProgram
                 if (index < files.Count - 1) index++;
                 break;
             case 'A':
-                CompletePlukliste(files[index]);
+                CompletePluklisteAsync(files[index]).Wait();
                 files.Remove(files[index]);
                 if (index == files.Count) index--;
                 break;
         }
     }
 
-    private void CompletePlukliste(string filePath)
+    private async Task CompletePluklisteAsync(string filePath)
     {
-        var plukliste = DeserializePlukliste(filePath);
-        
-        if (plukliste != null && plukliste.Lines != null)
+        try
         {
-            ProcessPrintItems(plukliste);
-        }
+            var plukliste = _parserFactory.ParseFile(filePath);
+        
+            if (plukliste != null && plukliste.Lines != null)
+            {
+                // Release reservations and reduce stock for physical items
+                foreach (var item in plukliste.Lines)
+                {
+                    var product = await _stockService.GetProductAsync(item.ProductID);
+                    if (product?.Type == Data.Entities.ProductType.Fysisk)
+                    {
+                        await _stockService.ReleaseReservationAsync(item.ProductID, item.Amount, $"Plukliste: {plukliste.Name}");
+                    }
+                }
 
-        MoveFileToImport(filePath);
-        Console.WriteLine($"Plukseddel {filePath} afsluttet.");
+                // Process print items
+                ProcessPrintItems(plukliste);
+            }
+
+            MoveFileToImport(filePath);
+            Console.WriteLine($"Plukseddel {filePath} afsluttet.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Fejl ved afslutning af plukseddel: {ex.Message}");
+        }
     }
 
     private void MoveFileToImport(string filePath)
@@ -177,7 +262,7 @@ class PluklisteProgram
         File.Move(filePath, destinationPath);
     }
 
-    private void ProcessPrintItems(Pluklist plukliste)
+    private void ProcessPrintItems(IPlukliste plukliste)
     {
         foreach (var item in plukliste.Lines.Where(i => i.Type == ItemType.Print))
         {
@@ -188,7 +273,7 @@ class PluklisteProgram
         }
     }
 
-    private void GeneratePrintFile(Pluklist plukliste, Item item, int copyNumber)
+    private void GeneratePrintFile(IPlukliste plukliste, IItem item, int copyNumber)
     {
         string templatePath = Path.Combine("templates", $"{item.ProductID}.html");
 
@@ -208,7 +293,7 @@ class PluklisteProgram
         Console.WriteLine($"Vejledning genereret: {outputFileName}");
     }
 
-    private string ReplaceTags(string html, Pluklist plukliste, Item item)
+    private string ReplaceTags(string html, IPlukliste plukliste, IItem item)
     {
         return html
             .Replace("[Name]", plukliste.Name ?? "")

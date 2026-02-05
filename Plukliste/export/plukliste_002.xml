@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Pluklist xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Name>Maria Petersen</Name>
+  <Forsendelse>Standard levering</Forsendelse>
+  <Adresse>Parkvej 15, 8000 Aarhus C</Adresse>
+  <Lines>
+    <Item>
+      <ProductID>PROD789</ProductID>
+      <Title>Monitor 27"</Title>
+      <Type>Fysisk</Type>
+      <Amount>1</Amount>
+    </Item>
+    <Item>
+      <ProductID>VEJ002</ProductID>
+      <Title>Opsætningsvejledning til Monitor</Title>
+      <Type>Print</Type>
+      <Amount>2</Amount>
+    </Item>
+    <Item>
+      <ProductID>PROD890</ProductID>
+      <Title>HDMI Kabel</Title>
+      <Type>Fysisk</Type>
+      <Amount>1</Amount>
+    </Item>
+  </Lines>
+</Pluklist>

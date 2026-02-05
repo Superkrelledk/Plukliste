@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="da">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Plukliste Viewer</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #f5f5f5;
+        padding: 20px;
+      }
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 3px solid #007bff;
+      }
+      h1 {
+        color: #333;
+        font-size: 2em;
+      }
+      .nav-links {
+        display: flex;
+        gap: 15px;
+      }
+      .nav-links a {
+        text-decoration: none;
+        color: #007bff;
+        padding: 8px 16px;
+        border: 2px solid #007bff;
+        border-radius: 5px;
+        transition: all 0.3s;
+      }
+      .nav-links a:hover {
+        background: #007bff;
+        color: white;
+      }
+      .queue-info {
+        background: #e7f3ff;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        text-align: center;
+        font-size: 1.2em;
+        color: #004085;
+      }
+      .navigation {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+      .navigation button {
+        padding: 12px 24px;
+        font-size: 16px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+      .btn-prev {
+        background: #6c757d;
+        color: white;
+      }
+      .btn-prev:hover:not(:disabled) {
+        background: #5a6268;
+      }
+      .btn-next {
+        background: #007bff;
+        color: white;
+      }
+      .btn-next:hover:not(:disabled) {
+        background: #0056b3;
+      }
+      .btn-complete {
+        background: #28a745;
+        color: white;
+      }
+      .btn-complete:hover:not(:disabled) {
+        background: #218838;
+      }
+      .btn-reload {
+        background: #17a2b8;
+        color: white;
+      }
+      .btn-reload:hover {
+        background: #138496;
+      }
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .plukliste-card {
+        background: #f8f9fa;
+        padding: 25px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+      }
+      .plukliste-header {
+        margin-bottom: 20px;
+      }
+      .plukliste-header h2 {
+        color: #333;
+        margin-bottom: 10px;
+      }
+      .info-grid {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      .info-label {
+        font-weight: bold;
+        color: #666;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+      }
+      th,
+      td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+      th {
+        background: #007bff;
+        color: white;
+      }
+      tr:hover {
+        background: #f8f9fa;
+      }
+      .status-ok {
+        color: #28a745;
+        font-weight: bold;
+      }
+      .status-rest {
+        color: #ffc107;
+        font-weight: bold;
+      }
+      .status-out {
+        color: #dc3545;
+        font-weight: bold;
+      }
+      .loading {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+      }
+      .no-data {
+        text-align: center;
+        padding: 60px;
+        color: #999;
+        font-size: 1.2em;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Plukliste Viewer</h1>
+        <nav class="nav-links">
+          <a href="index.html">Lagerstyring</a>
+          <a href="create-plukliste.html">Opret Plukliste</a>
+          <a href="plukliste-viewer.html">Plukliste Viewer</a>
+        </nav>
+      </header>
+
+      <div class="queue-info" id="queueInfo">
+        <div class="loading">Indlæser pluksedler...</div>
+      </div>
+
+      <div class="navigation">
+        <button
+          class="btn-prev"
+          id="btnPrev"
+          onclick="previousPlukliste()"
+          disabled
+        >
+          Forrige
+        </button>
+        <button class="btn-reload" onclick="reloadPluklister()">
+          Genindlæs
+        </button>
+        <button
+          class="btn-next"
+          id="btnNext"
+          onclick="nextPlukliste()"
+          disabled
+        >
+          Næste
+        </button>
+      </div>
+
+      <div id="pluklisteContent">
+        <div class="loading">Indlæser...</div>
+      </div>
+
+      <div class="navigation">
+        <button
+          class="btn-complete"
+          id="btnComplete"
+          onclick="completePlukliste()"
+          disabled
+        >
+          ✓ Afslut Plukseddel
+        </button>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE = "http://localhost:5000/api";
+      let currentIndex = 0;
+      let totalCount = 0;
+
+      async function loadPluklister() {
+        try {
+          const response = await fetch(`${API_BASE}/plukliste`);
+          const files = await response.json();
+          totalCount = files.length;
+
+          if (totalCount === 0) {
+            document.getElementById("queueInfo").innerHTML = `
+                        <div>Ingen pluksedler i kø</div>
+                    `;
+            document.getElementById("pluklisteContent").innerHTML = `
+                        <div class="no-data">
+                            <p>📭 Ingen pluksedler at vise</p>
+                            <p style="margin-top: 10px; font-size: 0.9em;">Opret en ny plukliste eller vent på at nye kommer ind.</p>
+                        </div>
+                    `;
+            updateButtons();
+            return;
+          }
+
+          currentIndex = Math.min(currentIndex, totalCount - 1);
+          await loadPlukliste(currentIndex);
+        } catch (error) {
+          console.error("Error loading pluklister:", error);
+          document.getElementById("queueInfo").innerHTML =
+            "<div>Fejl ved indlæsning</div>";
+        }
+      }
+
+      async function loadPlukliste(index) {
+        try {
+          const response = await fetch(`${API_BASE}/plukliste/${index}`);
+          if (!response.ok) {
+            throw new Error("Plukliste ikke fundet");
+          }
+
+          const plukliste = await response.json();
+          displayPlukliste(plukliste);
+        } catch (error) {
+          console.error("Error loading plukliste:", error);
+          document.getElementById("pluklisteContent").innerHTML = `
+                    <div class="no-data">Fejl ved indlæsning af plukliste</div>
+                `;
+        }
+      }
+
+      function displayPlukliste(plukliste) {
+        document.getElementById("queueInfo").innerHTML = `
+                Plukliste ${plukliste.index + 1} af ${plukliste.totalCount}
+            `;
+
+        let html = `
+                <div class="plukliste-card">
+                    <div class="plukliste-header">
+                        <h2>Plukseddel</h2>
+                        <div style="color: #666; font-size: 0.9em;">Fil: ${plukliste.fileName}</div>
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-label">Kunde:</div>
+                        <div>${plukliste.name}</div>
+                        <div class="info-label">Forsendelse:</div>
+                        <div>${plukliste.forsendelse}</div>
+                        <div class="info-label">Adresse:</div>
+                        <div>${plukliste.adresse}</div>
+                    </div>
+
+                    <h3 style="margin-bottom: 15px;">Varer:</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Antal</th>
+                                <th>Type</th>
+                                <th>Produkt Nr.</th>
+                                <th>Navn</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+        plukliste.items.forEach((item) => {
+          let statusClass = "status-ok";
+          if (item.status.includes("REST")) {
+            statusClass = "status-rest";
+          } else if (item.status.includes("UDSOLGT")) {
+            statusClass = "status-out";
+          }
+
+          html += `
+                    <tr>
+                        <td>${item.amount}</td>
+                        <td>${item.type}</td>
+                        <td><strong>${item.productID}</strong></td>
+                        <td>${item.title}</td>
+                        <td class="${statusClass}">${item.status}</td>
+                    </tr>
+                `;
+        });
+
+        html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+        document.getElementById("pluklisteContent").innerHTML = html;
+        updateButtons();
+      }
+
+      function updateButtons() {
+        document.getElementById("btnPrev").disabled =
+          currentIndex <= 0 || totalCount === 0;
+        document.getElementById("btnNext").disabled =
+          currentIndex >= totalCount - 1 || totalCount === 0;
+        document.getElementById("btnComplete").disabled = totalCount === 0;
+      }
+
+      function previousPlukliste() {
+        if (currentIndex > 0) {
+          currentIndex--;
+          loadPlukliste(currentIndex);
+        }
+      }
+
+      function nextPlukliste() {
+        if (currentIndex < totalCount - 1) {
+          currentIndex++;
+          loadPlukliste(currentIndex);
+        }
+      }
+
+      async function completePlukliste() {
+        if (
+          !confirm(
+            "Er du sikker på at du vil afslutte denne plukseddel?\n\nVarer vil blive trukket fra lageret og reservationer frigivet.",
+          )
+        ) {
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            `${API_BASE}/plukliste/${currentIndex}/complete`,
+            {
+              method: "POST",
+            },
+          );
+
+          if (response.ok) {
+            alert("Plukseddel afsluttet!");
+            if (currentIndex > 0) currentIndex--;
+            await loadPluklister();
+          } else {
+            alert("Fejl ved afslutning af plukseddel");
+          }
+        } catch (error) {
+          alert("Fejl ved afslutning af plukseddel");
+          console.error(error);
+        }
+      }
+
+      async function reloadPluklister() {
+        await fetch(`${API_BASE}/plukliste/reload`, { method: "POST" });
+        currentIndex = 0;
+        await loadPluklister();
+      }
+
+      // Initial load
+      loadPluklister();
+
+      // Auto refresh every 15 seconds
+      setInterval(loadPluklister, 15000);
+    </script>
+  </body>
+</html>
