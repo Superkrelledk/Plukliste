@@ -31,7 +31,7 @@ class PluklisteProgram
         }
         else
         {
-            while (index <= files.Count - 1)
+            while (true)
             {
 
                 Console.WriteLine($"Plukliste {index} af {files.Count}");
@@ -60,38 +60,28 @@ class PluklisteProgram
                 }
 
                 //Print options
+                string[] keys = ['Q', 'A', 'F', 'N', 'G']
+                for (i = 0; i < 6; i++) 
+                {
+                    string[] options = {"Quit", "Afslut plukseddel", "Forrige plukseddel", "Næste plukseddel", "Genindlæs pluksedler"}
                 Console.WriteLine("\n\nOptions:");
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.Write("Q");
-                Console.ForegroundColor = standardColor;
-                Console.WriteLine("Quit");
 
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.Write("A");
-                Console.ForegroundColor = standardColor;
-                Console.WriteLine("Afslut plukseddel");
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.Write(keys[i]);
+                    Console.ForegroundColor = standardColor;
+                    Console.WriteLine(options[i]);
+                }
 
-
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.Write("F");
-                Console.ForegroundColor = standardColor;
-                Console.WriteLine("Forrige plukseddel");
-
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.Write("N");
-                Console.ForegroundColor = standardColor;
-                Console.WriteLine("Næste plukseddel");
-
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.Write("G");
-                Console.ForegroundColor = standardColor;
-                Console.WriteLine("Genindlæs pluksedler");
 
                 readKey = Console.ReadKey().KeyChar;
                 if (readKey >= 'a') readKey -= (char)('a' - 'A'); //HACK: To upper
                 Console.Clear();
 
                 Console.ForegroundColor = ConsoleColor.Red; //status in red
+                
+
+                if (readKey == Q) { break; }
+
                 switch (readKey)
                 {
 
@@ -131,8 +121,8 @@ class PluklisteProgram
 
                         Console.ForegroundColor = standardColor;
 
-                } /////////////ghjhgfghjkhgfghjkjhgfdfghjkjhgfdfghjkjhgfdfghjkjhgfdfghjkjhgfdfghjkjhgfddfghjk
-                if (readKey == Q) { break; }
+                }
+                index = index + 1;
             }
         }
     }
