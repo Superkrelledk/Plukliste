@@ -1,9 +1,5 @@
 ﻿using Plukliste.Core.Models;
 using Plukliste.Core.Parsers;
-using Plukliste.Data;
-using Plukliste.Services;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Plukliste;
 
@@ -14,38 +10,16 @@ class PluklisteProgram
     private const string PrintDirectory = "print";
     
     private readonly PluklisteParserFactory _parserFactory;
-    private readonly IStockService _stockService;
 
-    public PluklisteProgram(IStockService stockService)
+    public PluklisteProgram()
     {
         _parserFactory = new PluklisteParserFactory();
-        _stockService = stockService;
     }
 
     static void Main()
     {
-        // Setup dependency injection
-        var services = new ServiceCollection();
-        services.AddDbContext<PluklisteDbContext>(options =>
-            options.UseSqlite("Data Source=../Plukliste.WebApi/plukliste.db"));
-        services.AddScoped<IStockService, StockService>();
-
-        var serviceProvider = services.BuildServiceProvider();
-
-        // Initialize database
-        using (var scope = serviceProvider.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<PluklisteDbContext>();
-            db.Database.EnsureCreated();
-        }
-
-        // Run app
-        using (var scope = serviceProvider.CreateScope())
-        {
-            var stockService = scope.ServiceProvider.GetRequiredService<IStockService>();
-            var app = new PluklisteProgram(stockService);
-            app.Run();
-        }
+        var app = new PluklisteProgram();
+        app.Run();
     }
 
     private void Run()
@@ -113,7 +87,7 @@ class PluklisteProgram
             if (plukliste != null && plukliste.Lines != null)
             {
                 DisplayPluklisteHeader(plukliste);
-                DisplayPluklisteItemsAsync(plukliste.Lines).Wait();
+                DisplayPluklisteItems(plukliste.Lines);
             }
         }
         catch (Exception ex)
@@ -129,43 +103,13 @@ class PluklisteProgram
         Console.WriteLine("{0, -13}{1}", "Adresse:", plukliste.Adresse);
     }
 
-    private async Task DisplayPluklisteItemsAsync(List<IItem> items)
+    private void DisplayPluklisteItems(List<IItem> items)
     {
-        Console.WriteLine("\n{0,-7}{1,-9}{2,-20}{3,-30}{4}", "Antal", "Type", "Produktnr.", "Navn", "Status");
+        Console.WriteLine("\n{0,-7}{1,-9}{2,-20}{3,-30}", "Antal", "Type", "Produktnr.", "Navn");
         
         foreach (var item in items)
         {
-            var product = await _stockService.GetProductAsync(item.ProductID);
-            var status = "OK";
-            var statusColor = Console.ForegroundColor;
-
-            if (item.Type == ItemType.Fysisk && product != null)
-            {
-                var available = product.QuantityAvailable;
-                if (available < item.Amount)
-                {
-                    status = available > 0 ? $"REST (kun {available})" : "UDSOLGT";
-                    statusColor = ConsoleColor.Red;
-                }
-                else if (available < 10)
-                {
-                    statusColor = ConsoleColor.Yellow;
-                }
-                else
-                {
-                    statusColor = ConsoleColor.Green;
-                }
-            }
-            else if (product == null)
-            {
-                status = "Ukendt produkt";
-                statusColor = ConsoleColor.Red;
-            }
-
-            var originalColor = Console.ForegroundColor;
-            Console.ForegroundColor = statusColor;
-            Console.WriteLine("{0,-7}{1,-9}{2,-20}{3,-30}{4}", item.Amount, item.Type, item.ProductID, item.Title, status);
-            Console.ForegroundColor = originalColor;
+            Console.WriteLine("{0,-7}{1,-9}{2,-20}{3,-30}", item.Amount, item.Type, item.ProductID, item.Title);
         }
     }
 
@@ -217,14 +161,14 @@ class PluklisteProgram
                 if (index < files.Count - 1) index++;
                 break;
             case 'A':
-                CompletePluklisteAsync(files[index]).Wait();
+                CompletePlukliste(files[index]);
                 files.Remove(files[index]);
                 if (index == files.Count) index--;
                 break;
         }
     }
 
-    private async Task CompletePluklisteAsync(string filePath)
+    private void CompletePlukliste(string filePath)
     {
         try
         {
@@ -232,17 +176,6 @@ class PluklisteProgram
         
             if (plukliste != null && plukliste.Lines != null)
             {
-                // Release reservations and reduce stock for physical items
-                foreach (var item in plukliste.Lines)
-                {
-                    var product = await _stockService.GetProductAsync(item.ProductID);
-                    if (product?.Type == Data.Entities.ProductType.Fysisk)
-                    {
-                        await _stockService.ReleaseReservationAsync(item.ProductID, item.Amount, $"Plukliste: {plukliste.Name}");
-                    }
-                }
-
-                // Process print items
                 ProcessPrintItems(plukliste);
             }
 
