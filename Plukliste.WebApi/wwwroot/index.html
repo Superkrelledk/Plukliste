@@ -3,398 +3,197 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lagersystem - Plukliste</title>
+    <title>Lagerstyring</title>
     <style>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
       body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-family: Arial, sans-serif;
         background: #f5f5f5;
         padding: 20px;
       }
       .container {
-        max-width: 1400px;
+        max-width: 900px;
         margin: 0 auto;
         background: white;
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        padding: 24px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       }
       header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 30px;
-        padding-bottom: 20px;
-        border-bottom: 3px solid #007bff;
+        margin-bottom: 20px;
       }
-      h1 {
-        color: #333;
-        font-size: 2em;
-      }
-      .nav-links {
-        display: flex;
-        gap: 15px;
-      }
-      .nav-links a {
+      .nav a {
+        margin-left: 8px;
         text-decoration: none;
         color: #007bff;
-        padding: 8px 16px;
-        border: 2px solid #007bff;
-        border-radius: 5px;
-        transition: all 0.3s;
+        padding: 6px 12px;
+        border: 1px solid #007bff;
+        border-radius: 4px;
       }
-      .nav-links a:hover {
+      .nav a:hover {
         background: #007bff;
         color: white;
       }
-      .search-box {
-        margin-bottom: 20px;
-        display: flex;
-        gap: 10px;
-      }
-      .search-box input {
-        flex: 1;
-        padding: 12px;
-        border: 2px solid #ddd;
-        border-radius: 5px;
-        font-size: 16px;
-      }
-      .search-box button {
-        padding: 12px 24px;
-        background: #007bff;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 16px;
-      }
-      .search-box button:hover {
-        background: #0056b3;
+      input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        margin: 12px 0;
       }
       table {
         width: 100%;
         border-collapse: collapse;
-        margin-bottom: 30px;
       }
       th,
       td {
-        padding: 12px;
+        padding: 10px;
+        border-bottom: 1px solid #eee;
         text-align: left;
-        border-bottom: 1px solid #ddd;
       }
       th {
         background: #007bff;
         color: white;
-        font-weight: 600;
       }
-      tr:hover {
-        background: #f8f9fa;
-      }
-      .status-ok {
-        color: #28a745;
-        font-weight: bold;
-      }
-      .status-low {
-        color: #ffc107;
-        font-weight: bold;
-      }
-      .status-out {
-        color: #dc3545;
-        font-weight: bold;
-      }
-      .update-section {
-        background: #f8f9fa;
-        padding: 20px;
-        border-radius: 8px;
-        margin-bottom: 30px;
-      }
-      .update-section h2 {
-        margin-bottom: 15px;
-        color: #333;
-      }
-      .form-row {
-        display: flex;
-        gap: 15px;
-        align-items: flex-end;
-      }
-      .form-group {
-        flex: 1;
-      }
-      .form-group label {
-        display: block;
-        margin-bottom: 5px;
-        color: #666;
-        font-weight: 500;
-      }
-      .form-group input {
-        width: 100%;
-        padding: 10px;
-        border: 2px solid #ddd;
-        border-radius: 5px;
-        font-size: 16px;
-      }
-      .btn-update {
-        padding: 10px 30px;
-        background: #28a745;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 16px;
-      }
-      .btn-update:hover {
-        background: #218838;
-      }
-      .activity-log {
-        margin-top: 30px;
-      }
-      .activity-log h2 {
-        margin-bottom: 15px;
-        color: #333;
-      }
-      .activity-item {
-        padding: 10px;
-        border-left: 4px solid #007bff;
-        background: #f8f9fa;
-        margin-bottom: 10px;
-        border-radius: 3px;
-      }
-      .activity-time {
-        font-size: 0.9em;
-        color: #666;
-      }
-      .loading {
-        text-align: center;
-        padding: 40px;
-        color: #666;
+      .muted {
+        color: #777;
       }
     </style>
   </head>
   <body>
     <div class="container">
       <header>
-        <h1>Lagersystem</h1>
-        <nav class="nav-links">
+        <h1>Lagerstyring</h1>
+        <nav class="nav">
           <a href="index.html">Lagerstyring</a>
           <a href="create-plukliste.html">Opret Plukliste</a>
-          <a href="plukliste-viewer.html">Plukliste Viewer</a>
+          <a href="plukliste-viewer.html">Se Pluklister</a>
         </nav>
       </header>
 
-      <div class="search-box">
-        <input
-          type="text"
-          id="searchInput"
-          placeholder="Søg efter produkt ID eller navn..."
-        />
-        <button onclick="searchProducts()">Søg</button>
-        <button onclick="loadProducts()">Vis alle</button>
-      </div>
+      <label for="search">Søg efter produkt</label>
+      <input
+        id="search"
+        type="text"
+        placeholder="Skriv produkt ID eller navn"
+      />
 
-      <div class="update-section">
-        <h2>Opdater Lagerbeholdning</h2>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="productId">Produkt ID:</label>
-            <input type="text" id="productId" placeholder="f.eks. PROD123" />
-          </div>
-          <div class="form-group">
-            <label for="newQuantity">Ny Beholdning:</label>
-            <input type="number" id="newQuantity" placeholder="f.eks. 45" />
-          </div>
-          <button class="btn-update" onclick="updateStock()">
-            Opdater Lager
-          </button>
-        </div>
-      </div>
-
-      <div id="productsTable">
-        <div class="loading">Indlæser produkter...</div>
-      </div>
-
-      <div class="activity-log">
-        <h2>Seneste Aktivitet</h2>
-        <div id="activityLog">
-          <div class="loading">Indlæser aktivitet...</div>
-        </div>
-      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Produkt ID</th>
+            <th>Navn</th>
+            <th>Type</th>
+            <th>På lager</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <p id="empty" class="muted"></p>
     </div>
 
     <script>
-      const API_BASE = "http://localhost:5000/api";
+      const PRODUCTS = [
+        {
+          productID: "PROD123",
+          title: "Trådløs Mus",
+          type: 0,
+          quantityAvailable: 50,
+        },
+        {
+          productID: "PROD456",
+          title: "USB Tastatur",
+          type: 0,
+          quantityAvailable: 30,
+        },
+        {
+          productID: "PROD789",
+          title: 'Monitor 27"',
+          type: 0,
+          quantityAvailable: 15,
+        },
+        {
+          productID: "PROD890",
+          title: "HDMI Kabel",
+          type: 0,
+          quantityAvailable: 100,
+        },
+        {
+          productID: "RES001",
+          title: "Reservedel A",
+          type: 0,
+          quantityAvailable: 200,
+        },
+        {
+          productID: "RES002",
+          title: "Reservedel B",
+          type: 0,
+          quantityAvailable: 150,
+        },
+        {
+          productID: "RES003",
+          title: "Reservedel C",
+          type: 0,
+          quantityAvailable: 80,
+        },
+        {
+          productID: "TOOL001",
+          title: "Værktøj Set A",
+          type: 0,
+          quantityAvailable: 25,
+        },
+        {
+          productID: "TOOL002",
+          title: "Værktøj Set B",
+          type: 0,
+          quantityAvailable: 18,
+        },
+        {
+          productID: "VEJ001",
+          title: "Installationsvejledning Mus",
+          type: 1,
+          quantityAvailable: 999999,
+        },
+        {
+          productID: "VEJ002",
+          title: "Opsætningsvejledning Monitor",
+          type: 1,
+          quantityAvailable: 999999,
+        },
+      ];
 
-      async function loadProducts() {
-        try {
-          const response = await fetch(`${API_BASE}/products`);
-          const products = await response.json();
-          displayProducts(products);
-        } catch (error) {
-          document.getElementById("productsTable").innerHTML =
-            '<div class="loading">Fejl ved indlæsning af produkter</div>';
-          console.error("Error:", error);
-        }
-      }
+      const rows = document.getElementById("rows");
+      const empty = document.getElementById("empty");
+      const search = document.getElementById("search");
 
-      function displayProducts(products) {
-        let html = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Produkt ID</th>
-                            <th>Navn</th>
-                            <th>Type</th>
-                            <th>På Lager</th>
-                            <th>Reserveret</th>
-                            <th>Tilgængelig</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-        products.forEach((product) => {
-          const available = product.quantityAvailable;
-          let statusClass = "status-ok";
-          let statusText = "✓ OK";
-
-          if (product.type === 1) {
-            // Print type
-            statusClass = "status-ok";
-            statusText = "∞ Ubegrænset";
-          } else if (available === 0) {
-            statusClass = "status-out";
-            statusText = "Udsolgt";
-          } else if (available < 10) {
-            statusClass = "status-low";
-            statusText = "Lav";
-          }
-
-          html += `
-                    <tr>
-                        <td><strong>${product.productID}</strong></td>
-                        <td>${product.title}</td>
-                        <td>${product.type === 0 ? "Fysisk" : "Print"}</td>
-                        <td>${product.quantityInStock}</td>
-                        <td>${product.quantityReserved}</td>
-                        <td>${available}</td>
-                        <td class="${statusClass}">${statusText}</td>
-                    </tr>
-                `;
+      function render(list) {
+        rows.innerHTML = "";
+        list.forEach((p) => {
+          rows.innerHTML += `
+            <tr>
+              <td>${p.productID}</td>
+              <td>${p.title}</td>
+              <td>${p.type === 0 ? "Fysisk" : "Print"}</td>
+              <td>${p.type === 1 ? "Ubegrænset" : p.quantityAvailable}</td>
+            </tr>
+          `;
         });
-
-        html += "</tbody></table>";
-        document.getElementById("productsTable").innerHTML = html;
+        empty.textContent = list.length ? "" : "Ingen produkter fundet.";
       }
 
-      async function updateStock() {
-        const productId = document.getElementById("productId").value.trim();
-        const newQuantity = document.getElementById("newQuantity").value;
+      search.addEventListener("input", () => {
+        const q = search.value.trim().toLowerCase();
+        const filtered = PRODUCTS.filter(
+          (p) =>
+            p.productID.toLowerCase().includes(q) ||
+            p.title.toLowerCase().includes(q),
+        );
+        render(filtered);
+      });
 
-        if (!productId || newQuantity === "") {
-          alert("Udfyld venligst både Produkt ID og Ny Beholdning");
-          return;
-        }
-
-        try {
-          const response = await fetch(
-            `${API_BASE}/products/${productId}/stock`,
-            {
-              method: "PUT",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                newQuantity: parseInt(newQuantity),
-                notes: "Manuel opdatering fra web interface",
-              }),
-            },
-          );
-
-          if (response.ok) {
-            alert("Lagerbeholdning opdateret!");
-            document.getElementById("productId").value = "";
-            document.getElementById("newQuantity").value = "";
-            loadProducts();
-            loadActivity();
-          } else {
-            alert("Fejl: Produkt ikke fundet");
-          }
-        } catch (error) {
-          alert("Fejl ved opdatering af lager");
-          console.error("Error:", error);
-        }
-      }
-
-      async function loadActivity() {
-        try {
-          const response = await fetch(
-            `${API_BASE}/products/transactions?limit=10`,
-          );
-          const transactions = await response.json();
-
-          let html = "";
-          transactions.forEach((t) => {
-            const date = new Date(t.timestamp);
-            const typeText =
-              {
-                0: "Indlæg",
-                1: "Udlæg",
-                2: "Reserveret",
-                3: "Frigivet",
-                4: "Justering",
-              }[t.type] || "Ukendt";
-
-            html += `
-                        <div class="activity-item">
-                            <div class="activity-time">${date.toLocaleString("da-DK")}</div>
-                            <div><strong>${t.productID}</strong> - ${typeText}: ${t.quantity > 0 ? "+" : ""}${t.quantity}</div>
-                            ${t.reference ? `<div>Reference: ${t.reference}</div>` : ""}
-                            ${t.notes ? `<div>${t.notes}</div>` : ""}
-                        </div>
-                    `;
-          });
-
-          document.getElementById("activityLog").innerHTML =
-            html || '<div class="loading">Ingen aktivitet endnu</div>';
-        } catch (error) {
-          console.error("Error loading activity:", error);
-        }
-      }
-
-      function searchProducts() {
-        const searchTerm = document
-          .getElementById("searchInput")
-          .value.toLowerCase();
-        if (!searchTerm) {
-          loadProducts();
-          return;
-        }
-
-        fetch(`${API_BASE}/products`)
-          .then((response) => response.json())
-          .then((products) => {
-            const filtered = products.filter(
-              (p) =>
-                p.productID.toLowerCase().includes(searchTerm) ||
-                p.title.toLowerCase().includes(searchTerm),
-            );
-            displayProducts(filtered);
-          });
-      }
-
-      // Initial load
-      loadProducts();
-      loadActivity();
-
-      // Auto refresh every 30 seconds
-      setInterval(() => {
-        loadProducts();
-        loadActivity();
-      }, 30000);
+      render(PRODUCTS);
     </script>
   </body>
 </html>
