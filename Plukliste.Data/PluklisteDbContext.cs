@@ -17,20 +17,15 @@ public class PluklisteDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Seed data - Opret nogle test produkter
+        // Seed data - Rigtige produkter fra test filerne
         modelBuilder.Entity<Product>().HasData(
-            new Product { ProductID = "PROD123", Title = "Trådløs Mus", Type = ProductType.Fysisk, QuantityInStock = 50, QuantityReserved = 0, CreatedDate = DateTime.Now },
-            new Product { ProductID = "PROD456", Title = "USB Tastatur", Type = ProductType.Fysisk, QuantityInStock = 30, QuantityReserved = 0, CreatedDate = DateTime.Now },
-            new Product { ProductID = "PROD789", Title = "Monitor 27\"", Type = ProductType.Fysisk, QuantityInStock = 15, QuantityReserved = 0, CreatedDate = DateTime.Now },
-            new Product { ProductID = "PROD890", Title = "HDMI Kabel", Type = ProductType.Fysisk, QuantityInStock = 100, QuantityReserved = 0, CreatedDate = DateTime.Now },
-            new Product { ProductID = "RES001", Title = "Reservedel A", Type = ProductType.Fysisk, QuantityInStock = 200, QuantityReserved = 0, CreatedDate = DateTime.Now },
-            new Product { ProductID = "RES002", Title = "Reservedel B", Type = ProductType.Fysisk, QuantityInStock = 150, QuantityReserved = 0, CreatedDate = DateTime.Now },
-            new Product { ProductID = "RES003", Title = "Reservedel C", Type = ProductType.Fysisk, QuantityInStock = 80, QuantityReserved = 0, CreatedDate = DateTime.Now },
-            new Product { ProductID = "RES005", Title = "Reservedel E", Type = ProductType.Fysisk, QuantityInStock = 120, QuantityReserved = 0, CreatedDate = DateTime.Now },
-            new Product { ProductID = "TOOL001", Title = "Værktøj Set A", Type = ProductType.Fysisk, QuantityInStock = 25, QuantityReserved = 0, CreatedDate = DateTime.Now },
-            new Product { ProductID = "TOOL002", Title = "Værktøj Set B", Type = ProductType.Fysisk, QuantityInStock = 18, QuantityReserved = 0, CreatedDate = DateTime.Now },
-            new Product { ProductID = "VEJ001", Title = "Installationsvejledning til Trådløs Mus", Type = ProductType.Print, QuantityInStock = 999999, QuantityReserved = 0, CreatedDate = DateTime.Now },
-            new Product { ProductID = "VEJ002", Title = "Opsætningsvejledning til Monitor", Type = ProductType.Print, QuantityInStock = 999999, QuantityReserved = 0, CreatedDate = DateTime.Now }
+            new Product { ProductID = "TX-302587", Title = "Triax TD 241E stikdås", Type = ProductType.Fysisk, QuantityInStock = 45, QuantityReserved = 0, CreatedDate = DateTime.Now },
+            new Product { ProductID = "NETGEAR-CM1000", Title = "NETGEAR DOCSIS 3.1 kabel modem", Type = ProductType.Fysisk, QuantityInStock = 28, QuantityReserved = 0, CreatedDate = DateTime.Now },
+            new Product { ProductID = "COAX_CABEL_20M", Title = "Coax kabeltromle 20m", Type = ProductType.Fysisk, QuantityInStock = 12, QuantityReserved = 0, CreatedDate = DateTime.Now },
+            new Product { ProductID = "F-CONN", Title = "F-connector 8mm", Type = ProductType.Fysisk, QuantityInStock = 67, QuantityReserved = 0, CreatedDate = DateTime.Now },
+            new Product { ProductID = "#830012", Title = "Papkasse 170x105x60", Type = ProductType.Fysisk, QuantityInStock = 150, QuantityReserved = 0, CreatedDate = DateTime.Now },
+            new Product { ProductID = "LABEL-RETUR", Title = "Retur label", Type = ProductType.Fysisk, QuantityInStock = 89, QuantityReserved = 0, CreatedDate = DateTime.Now },
+            new Product { ProductID = "PRINT-OPGRADE", Title = "Vejledning Opgradering", Type = ProductType.Print, QuantityInStock = 999999, QuantityReserved = 0, CreatedDate = DateTime.Now }
         );
     }
 }
