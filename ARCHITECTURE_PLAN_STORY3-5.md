@@ -4,10 +4,10 @@
 
 Stories 3-5 bygger på hinanden og kræver:
 
-- 🗄️ Database med Entity Framework Core
-- 🌐 ASP.NET Core Web API
-- 💻 Frontend (HTML/JavaScript eller Razor Pages)
-- 🔗 Integration med eksisterende console program
+- Database med Entity Framework Core
+- ASP.NET Core Web API
+- Frontend (HTML/JavaScript eller Razor Pages)
+- Integration med eksisterende console program
 
 ## Story 3: Varelager
 

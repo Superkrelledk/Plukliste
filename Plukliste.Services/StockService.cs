@@ -116,6 +116,31 @@ public class StockService : IStockService
         return true;
     }
 
+    public async Task<bool> ReleaseReservationAsRestAsync(string productId, int quantity, string? reference = null)
+    {
+        var product = await GetProductAsync(productId);
+        if (product == null || product.QuantityReserved < quantity) 
+            return false;
+
+        // Only release reservation, don't reduce stock (marked as rest/not picked)
+        product.QuantityReserved -= quantity;
+        product.LastUpdated = DateTime.Now;
+
+        var transaction = new StockTransaction
+        {
+            ProductID = productId,
+            Timestamp = DateTime.Now,
+            Type = TransactionType.Released,
+            Quantity = 0, // No stock reduction for rest items
+            Reference = reference ?? "Markeret som rest på plukseddel",
+            Notes = "Vare markeret som rest - ikke plukket"
+        };
+
+        _context.StockTransactions.Add(transaction);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
     public async Task<List<StockTransaction>> GetTransactionHistoryAsync(string? productId = null, int limit = 50)
     {
         var query = _context.StockTransactions.AsQueryable();

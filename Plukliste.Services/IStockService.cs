@@ -10,5 +10,6 @@ public interface IStockService
     Task<bool> ReduceStockAsync(string productId, int quantity, string? reference = null);
     Task<bool> ReserveStockAsync(string productId, int quantity, string? reference = null);
     Task<bool> ReleaseReservationAsync(string productId, int quantity, string? reference = null);
+    Task<bool> ReleaseReservationAsRestAsync(string productId, int quantity, string? reference = null);
     Task<List<StockTransaction>> GetTransactionHistoryAsync(string? productId = null, int limit = 50);
 }
