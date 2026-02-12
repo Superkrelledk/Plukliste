@@ -138,7 +138,7 @@ public class PluklisteController : ControllerBase
     }
 
     [HttpPost("{index}/complete")]
-    public async Task<ActionResult> Complete(int index)
+    public async Task<ActionResult> Complete(int index, [FromBody] CompletePluklisteRequest? request = null)
     {
         var files = Directory.GetFiles(ExportDirectory).OrderBy(f => System.IO.File.GetCreationTime(f)).ToArray();
         
@@ -148,13 +148,57 @@ public class PluklisteController : ControllerBase
         var filePath = files[index];
         var plukliste = _parserFactory.ParseFile(filePath);
 
-        // Release reservations and reduce stock for physical items
-        foreach (var item in plukliste.Lines)
+        // If no specific items provided, process all items normally (old behavior)
+        if (request?.CompletedItems == null || request.CompletedItems.Count == 0)
         {
-            var product = await _stockService.GetProductAsync(item.ProductID);
-            if (product?.Type == Data.Entities.ProductType.Fysisk)
+            // Release reservations and reduce stock for physical items
+            foreach (var item in plukliste.Lines)
             {
-                await _stockService.ReleaseReservationAsync(item.ProductID, item.Amount, $"Plukliste afsluttet: {plukliste.Name}");
+                var product = await _stockService.GetProductAsync(item.ProductID);
+                if (product?.Type == Data.Entities.ProductType.Fysisk)
+                {
+                    await _stockService.ReleaseReservationAsync(item.ProductID, item.Amount, $"Plukliste afsluttet: {plukliste.Name}");
+                }
+            }
+        }
+        else
+        {
+            // Process items based on what was actually picked
+            foreach (var item in plukliste.Lines)
+            {
+                var product = await _stockService.GetProductAsync(item.ProductID);
+                if (product?.Type == Data.Entities.ProductType.Fysisk)
+                {
+                    var completedItem = request.CompletedItems.FirstOrDefault(ci => ci.ProductID == item.ProductID);
+                    
+                    if (completedItem != null && completedItem.IsRest)
+                    {
+                        // Item marked as REST - release reservation without reducing stock
+                        await _stockService.ReleaseReservationAsRestAsync(item.ProductID, item.Amount, 
+                            $"REST på plukliste: {plukliste.Name}");
+                    }
+                    else if (completedItem != null)
+                    {
+                        // Item was picked - reduce reservation and stock
+                        int pickedAmount = Math.Min(item.Amount, completedItem.Amount);
+                        await _stockService.ReleaseReservationAsync(item.ProductID, pickedAmount, 
+                            $"Plukliste pakket: {plukliste.Name}");
+                        
+                        // If partial pick, release the rest as rest
+                        if (pickedAmount < item.Amount)
+                        {
+                            int restAmount = item.Amount - pickedAmount;
+                            await _stockService.ReleaseReservationAsRestAsync(item.ProductID, restAmount,
+                                $"Delvis pakket - rest på plukliste: {plukliste.Name}");
+                        }
+                    }
+                    else
+                    {
+                        // Not specified - mark full amount as rest
+                        await _stockService.ReleaseReservationAsRestAsync(item.ProductID, item.Amount, 
+                            $"REST på plukliste: {plukliste.Name}");
+                    }
+                }
             }
         }
 
@@ -187,6 +231,16 @@ public record PluklisteItemRequest(
     string Title,
     int Type,
     int Amount
+);
+
+public record CompletePluklisteRequest(
+    List<CompleteItemRequest>? CompletedItems = null
+);
+
+public record CompleteItemRequest(
+    string ProductID,
+    int Amount,
+    bool IsRest = false
 );
 
 public record PluklisteFileInfo

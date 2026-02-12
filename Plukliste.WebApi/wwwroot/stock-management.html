@@ -1,0 +1,1125 @@
+<!doctype html>
+<html lang="da">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lagerstyring</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #e8f4f8;
+        color: #333;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      header {
+        background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
+        color: white;
+        padding: 30px 20px;
+        border-radius: 8px 8px 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0;
+      }
+
+      header h1 {
+        font-size: 28px;
+        font-weight: 600;
+      }
+
+      .nav {
+        display: flex;
+        gap: 12px;
+      }
+
+      .nav a,
+      .nav button {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        text-decoration: none;
+        padding: 8px 16px;
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.3s;
+      }
+
+      .nav a:hover,
+      .nav button:hover {
+        background: rgba(255, 255, 255, 0.3);
+        border-color: white;
+      }
+
+      .main {
+        background: white;
+        padding: 30px;
+        border-radius: 0 0 8px 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .controls {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+        align-items: flex-end;
+      }
+
+      .control-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .control-group label {
+        font-weight: 600;
+        font-size: 14px;
+        color: #555;
+      }
+
+      input[type="text"],
+      select {
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+        font-family: inherit;
+      }
+
+      input[type="text"]:focus,
+      select:focus {
+        outline: none;
+        border-color: #0066cc;
+        box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+      }
+
+      input[type="text"] {
+        min-width: 250px;
+      }
+
+      button {
+        padding: 10px 20px;
+        background: #0066cc;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+        transition: background 0.3s;
+      }
+
+      button:hover {
+        background: #0052a3;
+      }
+
+      button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+      }
+
+      .loading::after {
+        content: "";
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid #ddd;
+        border-top-color: #0066cc;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin-left: 10px;
+        vertical-align: middle;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .error {
+        background: #fee;
+        border: 1px solid #f00;
+        color: #c00;
+        padding: 12px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+      }
+
+      .success {
+        background: #efe;
+        border: 1px solid #0a0;
+        color: #0a0;
+        padding: 12px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+      }
+
+      th,
+      td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+      }
+
+      th {
+        background: #f9f9f9;
+        font-weight: 600;
+        color: #333;
+        position: sticky;
+        top: 0;
+      }
+
+      tr:hover {
+        background: #f5f5f5;
+      }
+
+      .type-fysisk {
+        background: #e3f2fd;
+        color: #1565c0;
+        padding: 4px 8px;
+        border-radius: 3px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .type-print {
+        background: #f3e5f5;
+        color: #6a1b9a;
+        padding: 4px 8px;
+        border-radius: 3px;
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .quantity {
+        font-weight: 600;
+        text-align: center;
+      }
+
+      .quantity.low {
+        color: #f44336;
+      }
+
+      .quantity.medium {
+        color: #ff9800;
+      }
+
+      .quantity.ok {
+        color: #4caf50;
+      }
+
+      .outofstock {
+        background: #ffebee;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 8px;
+      }
+
+      .btn-small {
+        padding: 6px 12px;
+        font-size: 12px;
+        background: #0066cc;
+        color: white;
+        border: none;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      .btn-small:hover {
+        background: #0052a3;
+      }
+
+      .btn-history {
+        background: #999;
+      }
+
+      .btn-history:hover {
+        background: #777;
+      }
+
+      .pagination {
+        text-align: center;
+        padding: 20px;
+        color: #666;
+      }
+
+      .pagination button {
+        margin: 0 4px;
+      }
+
+      /* Modal styles */
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        animation: fadeIn 0.3s;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .modal.show {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        animation: slideIn 0.3s;
+      }
+
+      @keyframes slideIn {
+        from {
+          transform: translateY(-50px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 12px;
+      }
+
+      .modal-header h2 {
+        margin: 0;
+        color: #333;
+      }
+
+      .modal-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #999;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .modal-close:hover {
+        color: #333;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 6px;
+        font-weight: 600;
+        color: #333;
+      }
+
+      .form-group input,
+      .form-group textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-family: inherit;
+        font-size: 14px;
+      }
+
+      .form-group textarea {
+        resize: vertical;
+        min-height: 80px;
+      }
+
+      .form-group input:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: #0066cc;
+        box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.1);
+      }
+
+      .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #eee;
+      }
+
+      .info-label {
+        font-weight: 600;
+        color: #555;
+      }
+
+      .info-value {
+        color: #333;
+        font-weight: 600;
+      }
+
+      .modal-buttons {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 30px;
+        border-top: 1px solid #eee;
+        padding-top: 20px;
+      }
+
+      .modal-buttons button {
+        padding: 10px 20px;
+      }
+
+      button.secondary {
+        background: #999;
+      }
+
+      button.secondary:hover {
+        background: #777;
+      }
+
+      .transaction-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px;
+        border-bottom: 1px solid #eee;
+      }
+
+      .transaction-type {
+        font-weight: 600;
+        min-width: 120px;
+      }
+
+      .transaction-in {
+        color: #4caf50;
+      }
+
+      .transaction-out {
+        color: #f44336;
+      }
+
+      .transaction-reserved {
+        color: #ff9800;
+      }
+
+      .transaction-adjustment {
+        color: #2196f3;
+      }
+
+      .transaction-timestamp {
+        color: #999;
+        font-size: 12px;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+      }
+
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+
+      .stat-card {
+        background: #f5f5f5;
+        padding: 16px;
+        border-radius: 4px;
+        border-left: 4px solid #0066cc;
+      }
+
+      .stat-label {
+        color: #666;
+        font-size: 12px;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+      }
+
+      .stat-value {
+        font-size: 24px;
+        font-weight: 600;
+        color: #333;
+      }
+
+      @media (max-width: 768px) {
+        .controls {
+          flex-direction: column;
+        }
+
+        input[type="text"] {
+          min-width: auto;
+          width: 100%;
+        }
+
+        table {
+          font-size: 12px;
+        }
+
+        th,
+        td {
+          padding: 8px;
+        }
+
+        .action-buttons {
+          flex-direction: column;
+        }
+
+        .modal-content {
+          max-width: 95%;
+        }
+
+        header {
+          flex-direction: column;
+          gap: 16px;
+          text-align: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>📦 Lagerstyrings System</h1>
+        <nav class="nav">
+          <a href="stock-management.html">Lagerstyring</a>
+          <a href="create-plukliste.html">Opret Plukliste</a>
+          <a href="plukliste-viewer.html">Se Pluklister</a>
+        </nav>
+      </header>
+
+      <div class="main">
+        <!-- Stats -->
+        <div class="stats" id="stats">
+          <div class="stat-card">
+            <div class="stat-label">Produkter i lager</div>
+            <div class="stat-value" id="stat-total">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Lavt lager</div>
+            <div class="stat-value" id="stat-low" style="color: #f44336">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Uden lager</div>
+            <div class="stat-value" id="stat-outofstock" style="color: #d32f2f">
+              0
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Print ord.brugt</div>
+            <div class="stat-value" id="stat-print">0</div>
+          </div>
+        </div>
+
+        <!-- Messages -->
+        <div id="message"></div>
+
+        <!-- Controls -->
+        <div class="controls">
+          <div class="control-group" style="flex: 1; min-width: 250px">
+            <label for="search">🔍 Søg efter produkt</label>
+            <input
+              id="search"
+              type="text"
+              placeholder="Skriv produkt ID eller navn"
+            />
+          </div>
+
+          <div class="control-group">
+            <label for="typeFilter">Type</label>
+            <select id="typeFilter">
+              <option value="">Alle</option>
+              <option value="fysisk">Fysisk</option>
+              <option value="print">Print</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <label for="stockFilter">Lagerstatus</label>
+            <select id="stockFilter">
+              <option value="">Alle</option>
+              <option value="low">Lavt lager</option>
+              <option value="outofstock">Uden lager</option>
+              <option value="ok">OK</option>
+            </select>
+          </div>
+
+          <button onclick="loadProducts()">🔄 Opdater</button>
+        </div>
+
+        <!-- Table -->
+        <div id="loading" class="loading" style="display: none">
+          Henter produkter
+        </div>
+
+        <div id="content" style="display: none">
+          <table>
+            <thead>
+              <tr>
+                <th>Produkt ID</th>
+                <th>Navn</th>
+                <th>Type</th>
+                <th style="text-align: center">Lager</th>
+                <th style="text-align: center">Reserveret</th>
+                <th style="text-align: center">Ledig</th>
+                <th style="text-align: center">Handlinger</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+          <div class="pagination" id="pagination"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stock Adjustment Modal -->
+    <div class="modal" id="adjustModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>✏️ Optælling & Lagerjustering</h2>
+          <button class="modal-close" onclick="closeModal('adjustModal')">
+            ×
+          </button>
+        </div>
+
+        <div id="adjustInfo">
+          <div class="info-row">
+            <span class="info-label">Produkt ID:</span>
+            <span class="info-value" id="adjust-productid"></span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Navn:</span>
+            <span class="info-value" id="adjust-name"></span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Nuværende beholdning:</span>
+            <span class="info-value" id="adjust-current"></span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Reserveret til pluksedler:</span>
+            <span class="info-value" id="adjust-reserved"></span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Tilgængelig:</span>
+            <span class="info-value" id="adjust-available"></span>
+          </div>
+        </div>
+
+        <form id="adjustForm" style="margin-top: 20px">
+          <div class="form-group">
+            <label for="adjust-quantity">Optællet antal (stk) *</label>
+            <input
+              id="adjust-quantity"
+              type="number"
+              min="0"
+              step="1"
+              required
+              placeholder="Indtast antal fra optælling"
+            />
+          </div>
+
+          <div
+            class="info-row"
+            style="background: #f5f5f5; padding: 10px; border-radius: 4px"
+          >
+            <span class="info-label">Forskel (justeres):</span>
+            <span
+              class="info-value"
+              id="adjust-difference"
+              style="color: #f44336"
+              >0</span
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="adjust-notes">Kommentar (valgfrit)</label>
+            <textarea
+              id="adjust-notes"
+              placeholder="f.eks. Beskadigede enheder, nyt lager osv."
+            ></textarea>
+          </div>
+
+          <div class="modal-buttons">
+            <button
+              type="button"
+              class="secondary"
+              onclick="closeModal('adjustModal')"
+            >
+              Annuller
+            </button>
+            <button type="submit">Gem Optælling</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Transaction History Modal -->
+    <div class="modal" id="historyModal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>📊 Transaktionshistorik</h2>
+          <button class="modal-close" onclick="closeModal('historyModal')">
+            ×
+          </button>
+        </div>
+
+        <div style="margin-bottom: 16px">
+          <div class="info-row">
+            <span class="info-label">Produkt:</span>
+            <span class="info-value" id="history-product"></span>
+          </div>
+        </div>
+
+        <div id="historyContent" style="max-height: 400px; overflow-y: auto">
+          <!-- Populated by JavaScript -->
+        </div>
+
+        <div class="modal-buttons" style="margin-top: 20px">
+          <button
+            type="button"
+            class="secondary"
+            onclick="closeModal('historyModal')"
+          >
+            Luk
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE = "/api";
+      let products = [];
+      let currentPage = 1;
+      const itemsPerPage = 20;
+
+      // Load products on page load
+      document.addEventListener("DOMContentLoaded", loadProducts);
+
+      // Event listeners
+      document
+        .getElementById("search")
+        .addEventListener("input", filterAndDisplay);
+      document
+        .getElementById("typeFilter")
+        .addEventListener("change", filterAndDisplay);
+      document
+        .getElementById("stockFilter")
+        .addEventListener("change", filterAndDisplay);
+
+      // Adjust modal - calculate difference
+      document
+        .getElementById("adjust-quantity")
+        .addEventListener("input", calculateDifference);
+
+      // Adjust form submission
+      document
+        .getElementById("adjustForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+          await submitAdjustment();
+        });
+
+      async function loadProducts() {
+        const loading = document.getElementById("loading");
+        const content = document.getElementById("content");
+
+        loading.style.display = "block";
+        content.style.display = "none";
+
+        try {
+          const response = await fetch(`${API_BASE}/products`);
+          if (!response.ok) throw new Error("Failed to load products");
+
+          products = await response.json();
+          updateStats();
+          filterAndDisplay();
+
+          content.style.display = "block";
+          loading.style.display = "none";
+        } catch (error) {
+          showMessage(
+            "Fejl ved hentning af produkter: " + error.message,
+            "error",
+          );
+          loading.style.display = "none";
+        }
+      }
+
+      function updateStats() {
+        const total = products.length;
+        const low = products.filter(
+          (p) =>
+            p.type === 0 && p.quantityInStock > 0 && p.quantityInStock <= 10,
+        ).length;
+        const outofstock = products.filter(
+          (p) => p.type === 0 && p.quantityInStock === 0,
+        ).length;
+        const prints = products.filter((p) => p.type === 1).length;
+
+        document.getElementById("stat-total").textContent = total;
+        document.getElementById("stat-low").textContent = low;
+        document.getElementById("stat-outofstock").textContent = outofstock;
+        document.getElementById("stat-print").textContent = prints;
+      }
+
+      function filterAndDisplay() {
+        const search = document.getElementById("search").value.toLowerCase();
+        const typeFilter = document.getElementById("typeFilter").value;
+        const stockFilter = document.getElementById("stockFilter").value;
+
+        let filtered = products.filter((p) => {
+          // Search filter
+          if (
+            !p.productID.toLowerCase().includes(search) &&
+            !p.title.toLowerCase().includes(search)
+          ) {
+            return false;
+          }
+
+          // Type filter
+          if (typeFilter === "fysisk" && p.type !== 0) return false;
+          if (typeFilter === "print" && p.type !== 1) return false;
+
+          // Stock filter
+          if (stockFilter === "low") {
+            if (
+              p.type !== 0 ||
+              p.quantityInStock > 10 ||
+              p.quantityInStock === 0
+            )
+              return false;
+          }
+          if (stockFilter === "outofstock") {
+            if (p.type !== 0 || p.quantityInStock !== 0) return false;
+          }
+          if (stockFilter === "ok") {
+            if (p.type !== 0 || p.quantityInStock <= 10) return false;
+          }
+
+          return true;
+        });
+
+        currentPage = 1;
+        displayProducts(filtered);
+      }
+
+      function displayProducts(filtered) {
+        const rows = document.getElementById("rows");
+        const start = (currentPage - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const page = filtered.slice(start, end);
+
+        rows.innerHTML = "";
+
+        if (page.length === 0) {
+          rows.innerHTML =
+            '<tr><td colspan="7" style="text-align: center; padding: 40px; color: #999;">Ingen produkter fundet.</td></tr>';
+          document.getElementById("pagination").innerHTML = "";
+          return;
+        }
+
+        page.forEach((product) => {
+          const available = product.quantityInStock - product.quantityReserved;
+          const typeClass = product.type === 0 ? "type-fysisk" : "type-print";
+          const typeName = product.type === 0 ? "Fysisk" : "Print";
+
+          let quantityClass = "ok";
+          if (product.type === 0) {
+            if (product.quantityInStock === 0) {
+              quantityClass = "low";
+            } else if (product.quantityInStock <= 10) {
+              quantityClass = "medium";
+            }
+          }
+
+          const row = document.createElement("tr");
+          if (product.quantityInStock === 0 && product.type === 0) {
+            row.classList.add("outofstock");
+          }
+
+          row.innerHTML = `
+            <td>${product.productID}</td>
+            <td>${product.title}</td>
+            <td><span class="${typeClass}">${typeName}</span></td>
+            <td class="quantity ${quantityClass}" style="text-align: center;">
+              ${product.type === 1 ? "∞" : product.quantityInStock}
+            </td>
+            <td class="quantity" style="text-align: center;">
+              ${product.type === 1 ? "-" : product.quantityReserved}
+            </td>
+            <td class="quantity ${quantityClass}" style="text-align: center;">
+              ${product.type === 1 ? "∞" : available}
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button class="btn-small" onclick="openAdjustModal('${product.productID}')">
+                  ✏️ Optæl
+                </button>
+                <button class="btn-small btn-history" onclick="viewHistory('${product.productID}')">
+                  📊 Hist.
+                </button>
+              </div>
+            </td>
+          `;
+          rows.appendChild(row);
+        });
+
+        // Pagination
+        const totalPages = Math.ceil(filtered.length / itemsPerPage);
+        displayPagination(totalPages, filtered);
+      }
+
+      function displayPagination(totalPages, filtered) {
+        const pagination = document.getElementById("pagination");
+        pagination.innerHTML = "";
+
+        if (totalPages <= 1) return;
+
+        if (currentPage > 1) {
+          const prevBtn = document.createElement("button");
+          prevBtn.textContent = "◀ Forrige";
+          prevBtn.onclick = () => {
+            currentPage--;
+            displayProducts(filtered);
+          };
+          pagination.appendChild(prevBtn);
+        }
+
+        const pageInfo = document.createElement("span");
+        pageInfo.style.margin = "0 12px";
+        pageInfo.textContent = `Side ${currentPage} af ${totalPages}`;
+        pagination.appendChild(pageInfo);
+
+        if (currentPage < totalPages) {
+          const nextBtn = document.createElement("button");
+          nextBtn.textContent = "Næste ▶";
+          nextBtn.onclick = () => {
+            currentPage++;
+            displayProducts(filtered);
+          };
+          pagination.appendChild(nextBtn);
+        }
+      }
+
+      async function openAdjustModal(productId) {
+        const product = products.find((p) => p.productID === productId);
+        if (!product) return;
+
+        document.getElementById("adjust-productid").textContent =
+          product.productID;
+        document.getElementById("adjust-name").textContent = product.title;
+        document.getElementById("adjust-current").textContent =
+          product.quantityInStock;
+        document.getElementById("adjust-reserved").textContent =
+          product.quantityReserved;
+        document.getElementById("adjust-available").textContent =
+          product.quantityInStock - product.quantityReserved;
+        document.getElementById("adjust-quantity").value =
+          product.quantityInStock;
+        document.getElementById("adjust-notes").value = "";
+
+        calculateDifference();
+        document.getElementById("adjustModal").classList.add("show");
+      }
+
+      function calculateDifference() {
+        const current = parseInt(
+          document.getElementById("adjust-current").textContent,
+        );
+        const quantity =
+          parseInt(document.getElementById("adjust-quantity").value) || 0;
+        const difference = quantity - current;
+
+        document.getElementById("adjust-difference").textContent = difference;
+        document.getElementById("adjust-difference").style.color =
+          difference < 0 ? "#f44336" : difference > 0 ? "#4caf50" : "#999";
+      }
+
+      async function submitAdjustment() {
+        const productId =
+          document.getElementById("adjust-productid").textContent;
+        const newQuantity = parseInt(
+          document.getElementById("adjust-quantity").value,
+        );
+        const notes = document.getElementById("adjust-notes").value;
+
+        if (isNaN(newQuantity) || newQuantity < 0) {
+          alert("Venligst indtast et gyldigt antal");
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            `${API_BASE}/products/${productId}/stock`,
+            {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                newQuantity: newQuantity,
+                notes: notes || "Manuel optælling",
+              }),
+            },
+          );
+
+          if (!response.ok) {
+            const error = await response.text();
+            throw new Error(error || "Failed to update stock");
+          }
+
+          showMessage("✅ Lagerbeholdning opdateret successfully", "success");
+          closeModal("adjustModal");
+          loadProducts();
+        } catch (error) {
+          showMessage("❌ Fejl ved opbevaring: " + error.message, "error");
+        }
+      }
+
+      async function viewHistory(productId) {
+        const product = products.find((p) => p.productID === productId);
+        if (!product) return;
+
+        document.getElementById("history-product").textContent =
+          `${product.productID} - ${product.title}`;
+
+        const historyContent = document.getElementById("historyContent");
+        historyContent.innerHTML =
+          '<div class="loading">Henter transaktionshistorik</div>';
+
+        try {
+          const response = await fetch(
+            `${API_BASE}/products/transactions?productId=${productId}&limit=50`,
+          );
+          if (!response.ok) throw new Error("Failed to load history");
+
+          const transactions = await response.json();
+
+          if (transactions.length === 0) {
+            historyContent.innerHTML =
+              '<div class="empty-state">Ingen transaktioner registreret for dette produkt.</div>';
+          } else {
+            historyContent.innerHTML = transactions
+              .map((tx) => {
+                const typeMap = {
+                  0: "Ind på lager",
+                  1: "Ud fra lager",
+                  2: "Reserveret",
+                  3: "Frigivet",
+                  4: "Justering",
+                };
+                const typeClass =
+                  tx.type === 1
+                    ? "transaction-out"
+                    : tx.type === 0
+                      ? "transaction-in"
+                      : tx.type === 2
+                        ? "transaction-reserved"
+                        : "transaction-adjustment";
+
+                const date = new Date(tx.timestamp);
+                const dateStr =
+                  date.toLocaleDateString("da-DK") +
+                  " " +
+                  date.toLocaleTimeString("da-DK");
+
+                return `
+                  <div class="transaction-item">
+                    <div>
+                      <div class="transaction-type ${typeClass}">${typeMap[tx.type]}</div>
+                      <div class="transaction-timestamp">${dateStr}</div>
+                      ${tx.reference ? `<div style="font-size: 12px; color: #666;">Ref: ${tx.reference}</div>` : ""}
+                      ${tx.notes ? `<div style="font-size: 12px; color: #666;">${tx.notes}</div>` : ""}
+                    </div>
+                    <div style="text-align: right;">
+                      <div class="quantity" style="${tx.quantity >= 0 ? "color: #4caf50;" : "color: #f44336;"}">
+                        ${tx.quantity > 0 ? "+" : ""}${tx.quantity}
+                      </div>
+                    </div>
+                  </div>
+                `;
+              })
+              .join("");
+          }
+        } catch (error) {
+          historyContent.innerHTML = `<div class="error">Fejl: ${error.message}</div>`;
+        }
+
+        document.getElementById("historyModal").classList.add("show");
+      }
+
+      function closeModal(modalId) {
+        document.getElementById(modalId).classList.remove("show");
+      }
+
+      function showMessage(message, type) {
+        const messageDiv = document.getElementById("message");
+        messageDiv.className = type;
+        messageDiv.textContent = message;
+        messageDiv.style.display = "block";
+
+        setTimeout(() => {
+          messageDiv.style.display = "none";
+        }, 4000);
+      }
+
+      // Close modal when clicking outside
+      document.addEventListener("click", (e) => {
+        if (e.target.classList.contains("modal")) {
+          e.target.classList.remove("show");
+        }
+      });
+    </script>
+  </body>
+</html>
